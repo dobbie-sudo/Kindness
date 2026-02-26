@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spread Kindness</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --teal: #0ABFBC;
+    --teal-glow: rgba(10,191,188,0.25);
+    --teal-soft: rgba(10,191,188,0.12);
+    --white: #FFFFFF;
+    --text: #1A2332;
+    --text-mid: #4A5568;
+    --text-dim: rgba(26,35,50,0.45);
+    --glass-bg: rgba(255,255,255,0.55);
+    --glass-border: rgba(255,255,255,0.75);
+    --prompt-bg: rgba(255,255,255,0.7);
+  }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Sora', sans-serif;
+    padding: 24px;
+    /* Layered light gradient background */
+    background:
+      radial-gradient(ellipse at 15% 85%, rgba(10,191,188,0.18) 0%, transparent 50%),
+      radial-gradient(ellipse at 85% 10%, rgba(100,160,255,0.2) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 50%, rgba(200,220,255,0.15) 0%, transparent 70%),
+      linear-gradient(145deg, #E8F0FF 0%, #F0F8FF 40%, #E6F9F8 100%);
+  }
+
+  /* Floating orbs */
+  .orb {
+    position: fixed;
+    border-radius: 50%;
+    pointer-events: none;
+    filter: blur(60px);
+    z-index: 0;
+  }
+  .orb-1 { width: 320px; height: 320px; background: rgba(10,191,188,0.12); top: -80px; right: -60px; }
+  .orb-2 { width: 250px; height: 250px; background: rgba(100,140,255,0.1); bottom: -60px; left: -40px; }
+  .orb-3 { width: 150px; height: 150px; background: rgba(10,191,188,0.08); top: 50%; left: 20%; }
+
+  .wrapper {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 400px;
+  }
+
+  /* Glass card */
+  .card {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    padding: 38px 32px 34px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow:
+      0 8px 32px rgba(10,191,188,0.08),
+      0 2px 8px rgba(100,140,255,0.06),
+      inset 0 1px 0 rgba(255,255,255,0.9);
+  }
+
+  /* Eyebrow */
+  .eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  .eyebrow-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--teal);
+    box-shadow: 0 0 8px var(--teal-glow);
+  }
+  .eyebrow-text {
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--teal);
+  }
+
+  /* Question */
+  .question {
+    font-size: clamp(1.6rem, 6vw, 2.1rem);
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.25;
+    margin-bottom: 26px;
+    letter-spacing: -0.02em;
+  }
+  .question em {
+    font-style: normal;
+    color: var(--teal);
+    position: relative;
+  }
+
+
+  /* Prompt box */
+  .prompt-box {
+    background: var(--prompt-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 26px 22px;
+    margin-bottom: 26px;
+    min-height: 100px;
+    display: flex;
+    align-items: center;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 2px 12px rgba(10,191,188,0.06), inset 0 1px 0 rgba(255,255,255,0.9);
+    transition: opacity 0.22s, transform 0.22s;
+    position: relative;
+    overflow: hidden;
+  }
+  /* Inner shimmer top edge */
+  .prompt-box::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 10%; right: 10%;
+    height: 1px;
+    background: linear-gradient(to right, transparent, rgba(255,255,255,0.9), transparent);
+  }
+  .prompt-box.fade { opacity: 0; transform: translateY(5px); }
+
+  .prompt-text {
+    font-size: clamp(1.25rem, 5vw, 1.55rem);
+    font-weight: 400;
+    color: var(--text);
+    line-height: 1.5;
+    letter-spacing: -0.01em;
+  }
+
+  /* Progress */
+  .progress-row { display: none; }
+
+  /* Buttons */
+  .btn-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  button {
+    font-family: 'Sora', sans-serif;
+    font-weight: 500;
+    font-size: 0.82rem;
+    cursor: pointer;
+    border-radius: 12px;
+    letter-spacing: 0.02em;
+    padding: 13px 18px;
+    transition: all 0.18s;
+  }
+  button:active { transform: scale(0.97); }
+
+  .btn-shuffle {
+    background: rgba(255,255,255,0.6);
+    color: var(--text-mid);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(8px);
+    white-space: nowrap;
+  }
+  .btn-shuffle:hover {
+    background: rgba(255,255,255,0.85);
+    color: var(--text);
+  }
+
+  .btn-tell {
+    background: var(--teal);
+    color: var(--white);
+    border: 1px solid var(--teal);
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 4px 16px var(--teal-glow);
+  }
+  .btn-tell:hover {
+    background: #09ADAA;
+    box-shadow: 0 6px 20px rgba(10,191,188,0.35);
+    transform: translateY(-1px);
+  }
+
+  .footer-note {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    text-align: center;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+  }
+</style>
+</head>
+<body>
+
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+
+<div class="wrapper">
+  <div class="card">
+
+    <div class="eyebrow">
+      <div class="eyebrow-dot"></div>
+      <span class="eyebrow-text">Spread Kindness</span>
+    </div>
+
+    <h1 class="question">Who is the person that...</h1>
+
+    <div class="prompt-box" id="prompt-box">
+      <p class="prompt-text" id="prompt-display"></p>
+    </div>
+
+
+    <div class="btn-row">
+      <button class="btn-shuffle" onclick="shufflePrompt()">↻ &thinsp;Next prompt</button>
+      <button class="btn-tell" onclick="tellThem()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.126 1.533 5.859L0 24l6.336-1.501A11.934 11.934 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.852 0-3.587-.5-5.082-1.371l-.361-.214-3.762.891.952-3.665-.235-.374A9.934 9.934 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+        Tell them
+      </button>
+    </div>
+
+    <p class="footer-note">Opens WhatsApp with a message ready to send</p>
+
+  </div>
+</div>
+
+<script>
+const prompts = [
+  "I would share my last slice of pizza with — and I don't do that for just anyone",
+  "I would survive a zombie apocalypse with — they'd probably also cause it",
+  "would help me move a body — no questions asked, no judgment given",
+  "I'd pick first if we were starting a cult — they'd handle the branding",
+  "I absolutely need in my corner at a pub quiz",
+  "makes me snort-laugh in public with zero warning",
+  "I'd share a tent with even though they definitely snore like a chainsaw",
+  "I'd trust to talk me out of a truly terrible haircut",
+  "I can send completely unhinged voice notes to at 2am",
+  "would roast me so hard at my wedding that people would cry laughing",
+  "I'd call to help me build flat-pack furniture — we'd argue but finish it",
+  "has seen me at my absolute worst and somehow keeps coming back",
+  "I'd happily be stuck in an airport with for 12 hours — we'd own that terminal",
+  "would silently judge strangers with me using only eye contact",
+  "I'd trust to order for me at a restaurant and absolutely nail it",
+  "has laughed with me at something so inappropriate we can never speak of it",
+  "I could sit with in total silence sharing snacks and feel completely at peace",
+  "I'd want standing next to me if I ever had to give a public speech",
+  "knows every single one of my embarrassing stories and uses them responsibly",
+  "I've done something mildly illegal with and we took that secret to the grave",
+  "I could road trip with for three days straight without wanting to escape",
+  "I'd trust to stop me from sending that risky text at midnight",
+  "makes a trip to the supermarket feel like a full-blown adventure",
+  "I'd want on my escape room team — we are absolutely getting out",
+  "has sent me a meme so accurate it felt like a personal attack",
+  "can raid my fridge at any hour without even texting first",
+  "I've ugly-laughed with over something nobody else would find funny",
+  "would bail me out of jail and only mention it at every family gathering forever",
+  "I could binge an entire series with in one sitting and feel no guilt whatsoever",
+  "I can be fully unhinged around and they just nod and go with it",
+  "I'd trust with my phone — which is actually a huge deal",
+  "has witnessed me fall over in public and laughed before checking if I was okay",
+  "I would go halves on a terrible decision with — every single time",
+  "I can cancel plans with last minute and they genuinely don't mind",
+  "has the exact same irrational hatred of the same things I do",
+  "I'd trust to lie for me convincingly if the situation called for it",
+  "would stay up until 3am helping me fix something completely avoidable",
+  "I've eaten an embarrassing amount of food in front of without shame",
+  "could talk me into buying something ridiculous and I'd thank them for it later",
+  "knows exactly which song to play to completely change my mood",
+  "I can debrief a whole evening with and somehow it takes three hours",
+  "would absolutely back me up in an argument even if I was clearly wrong",
+  "has the same chaotic energy as me and that's both beautiful and dangerous",
+  "I'd do a terrible karaoke duet with and we'd commit fully",
+  "I've sent the most unhinged memes to and they always send something worse back",
+  "would pretend to be my partner to get me out of an awkward situation",
+  "I can rant to for twenty minutes and they'll still be fully invested",
+  "has a laugh so contagious it should probably be studied by scientists",
+  "I'd trust to give a toast at any event in my life — risky but worth it",
+  "would drive forty minutes out of their way for the good chips",
+  "I can make eye contact with across a room and we both instantly know",
+  "has talked me out of at least three genuinely terrible ideas — and into five more",
+  "I could spend an entire day doing absolutely nothing with and it would be perfect",
+  "would watch the most ridiculous film with me and pretend it was high art",
+  "I've had a full breakdown in front of and they just handed me snacks and listened",
+  "would help me rehearse an awkward conversation and give brutally good notes",
+  "I can be aggressively mediocre around with zero judgment",
+  "has the same completely niche sense of humour as me — we are a danger together",
+  "I'd trust to delete my browser history if anything ever happened to me",
+  "would come with me to a terrible event and make it the highlight of the year",
+  "I've recreated a whole dramatic situation with just using hand gestures and looks",
+  "would let me sleep on their couch with no explanation required",
+  "has never once made me feel weird for any of my very specific interests",
+  "I can say the most chaotic thing to and they just add to it",
+  "would show up with food when I'm struggling without being asked",
+  "I'd start a mildly unhinged business venture with on a whim",
+  "has a talent for making any situation at least 40 percent funnier",
+  "I could be lost in an unfamiliar city with and we'd turn it into a great story",
+  "would absolutely join me in a spontaneous terrible plan at short notice",
+  "I can send a one-word text to and they know exactly what I mean",
+  "would sit with me in comfortable silence for hours and call it a great night",
+  "has matched my chaotic 3am energy more than once and never complained",
+  "I'd let plan an entire trip with zero input from me — full trust",
+  "can make me feel better about a bad day by simply existing near me",
+  "I've laughed so hard with that we both had to stop and recover",
+  "would help me fake an emergency to get out of something awkward",
+  "has a gift for saying exactly the wrong thing at exactly the right time",
+  "I could eat an entire cheese board with in silence and feel deeply understood",
+  "would answer my call at any hour even if I just needed to vent about nothing",
+  "I've shared a look with across a room that said everything without a word",
+  "would run into a shop for me and come back with exactly the right thing",
+  "can make me laugh so hard I forget what I was even stressed about",
+  "I'd trust to pick the restaurant — no questions, no caveats, full confidence",
+  "has witnessed my most chaotic moments and somehow respects me more for them",
+  "I could people-watch with for hours and never run out of commentary",
+  "would take my side first and ask questions later — loyal to a fault",
+  "I've had the most ridiculous conversations with at the most ridiculous hours",
+  "would come with me to pick up something embarrassing without making it weird",
+  "can detect when something is wrong from a single punctuation change in my texts",
+  "I'd want in the group chat because they make everything at least twice as funny",
+  "has been on the receiving end of my worst jokes and still kept me around",
+  "I could get completely lost with and we'd both agree it was the best part",
+  "would help me overthink something for two hours and then tell me to just do it",
+  "I've had a full discussion with about absolutely nothing for an entire evening",
+  "would show up to support something I care about even if it wasn't their thing",
+  "can turn any ordinary Tuesday into something genuinely worth remembering",
+  "I'd let talk me into staying out later than planned — and it's always worth it",
+  "has the rare ability to make even bad news somehow a little bit funny",
+  "I could start a new hobby with on a whim and we'd both be terrible and love it",
+  "would be my phone-a-friend lifeline and I would win"
+];
+
+let current = 0;
+
+function updateUI() {
+  document.getElementById('prompt-display').textContent = prompts[current];
+}
+
+function shufflePrompt() {
+  const box = document.getElementById('prompt-box');
+  box.classList.add('fade');
+  setTimeout(() => {
+    let next;
+    do { next = Math.floor(Math.random() * prompts.length); } while (next === current && prompts.length > 1);
+    current = next;
+    updateUI();
+    box.classList.remove('fade');
+  }, 220);
+}
+
+function tellThem() {
+  const msg = "Hey! Just wanted you to know \u2014 you\u2019re the person that " + prompts[current] + ". Appreciate you more than you know!";
+  window.open("https://wa.me/?text=" + encodeURIComponent(msg), "_blank");
+}
+
+updateUI();
+</script>
+</body>
+</html>
